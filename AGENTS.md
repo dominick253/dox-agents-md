@@ -1,54 +1,31 @@
-# <repo> contract (DOX root of this tree)
+# <project> contract (DOX root)
 
-Chain: none - this IS the root of the chain; every other contract in the tree points here.
+Chain: none - every other contract in this tree points here.
+Scope: only what is needed before the first tool call, plus the routing index. Detail lives in opt-in children (`context/*.md`), never here.
 
-Scope: what an agent must know before its first tool call, plus the routing index to everything else. Detail lives in opt-in children, never here.
-
-## Grammar (host-wide, every contract in the tree uses it)
-
--> leads-to/imply <- reads-from => must ~ approx + and | or ! hard rule/pitfall STALE=unverified OPEN=owner decision pending ? unknown [date]=verified YYYY-MM-DD
-
-Style: telegraphic, articles/copulas/filler dropped, no tables, no em dash, no human-facing prose. Commands, paths, SHAs, ports, test names, env names, dates byte-exact. Credential rule: reference the LOCATION, never the value.
+Grammar: -> leads-to/imply <- reads-from => must ~ approx + and | or ! hard rule/pitfall STALE=unverified OPEN=owner decision pending ? unknown [date]=verified YYYY-MM-DD. Style: telegraphic, no tables, no em dash; commands, paths, SHAs, ports, test names, dates byte-exact; credential LOCATION only, never the value.
 
 ## Protocol
+- Chain: nearest `AGENTS.md` above cwd wins conflicts. A child opens `# <topic> contract`, then `Chain:` to its parent, then `Load:`.
+- Load: read a child only when its `Load:` line matches the task shape; never the whole sibling set. Split a large topic into topic children behind an index child that keeps the old filename, so inbound refs still resolve.
+- Deepest need: a fact lives where an agent uses it; the parent keeps one pointer line. Overflow => offload, never truncate.
+- Budgets (bytes): root 17920 | hub 14336 | contract 8192 | index child 3300 | topic child 4096 target, 8192 hard.
+- Live state > snapshot: query (`git ls-remote`, fetch, running listener) before claiming absent/stale.
+- ! Never delete a load-bearing fact: move it and leave the pointer that reaches it.
 
-- Hierarchy: nearest AGENTS.md above cwd wins on conflict. A contract opens `# <dir> contract`, then a `Chain:` line naming its parent, then `Load:` if it is a child.
-- Ownership = deepest need: a fact lives in the deepest contract where an agent actually uses it. A parent keeps one pointer line per offload (essence + child path); section too big => move it to the owning child in the same edit; a child must never contradict its parent line (fix both, one pass).
-- Children are opt-in: every offload child opens with a `Load:` trigger naming the task shapes that justify reading it => read only the child whose trigger matches, never the whole sibling set. A large topic splits into topic children behind a small index child that keeps the parent's filename. On-disk total may grow; per-read tokens must fall.
-- Budgets (bytes, hard): root 17920 | hub 14336 | contract 8192 | index child 3300 | topic child 4096 target, 8192 hard. Overflow => offload to a child, never truncate, never drop a load-bearing fact.
-- Maintenance: meaningful change => update the owning contract in place; essence changed => update the parent pointer line; new contract => register it in the map the same day.
-- Live state > snapshot: report absent/stale only after querying the thing itself (`git ls-remote`, fetch the URL, check the running listener). A local tracking ref being absent does not mean the data is absent.
-- ! Never delete a load-bearing fact: move it, and leave the pointer that reaches it.
+## Verification
+- Behavior change => failing test FIRST: paste the failing output (test name + command + failure line) before implementing, then the passing output of the same command. Same transcript, same commit.
+- No meaningful failing test (docs, config, infra posture) => `EVIDENCE-BEFORE:` and `EVIDENCE-AFTER:` (same commands, measured output) + what changed, or `NO AUTOMATED COVERAGE POSSIBLE: <why>`. The exception never skips verification.
 
-## Verification (Red/Green, and its only exception)
+## Editing a contract
+`cp` every file you touch before editing it, in the same task. After: the dropped-identifier set vs that snapshot (`comm -23`) must be EMPTY. Refs absolute and literal, no brace shorthand. Classify an offload failure as MOVED-TO-CHILD (provable: parent pointer + child `Load:`) or LOST (zero tolerance).
 
-- Behavior change => failing test FIRST: run it, paste the actual failing output (test name + command + failure line) into working evidence BEFORE implementing; implement; re-run the same command; paste the passing output. RED->GREEN in the same transcript and the same commit message.
-- A non-vacuity mutation must be verified present (grep -c, byte count) before citing a run. A "paraphrase" typo that leaves a file byte-identical makes the passing test prove nothing.
-- EXCEPTION, fixed greppable labels, when no automated failing test is meaningful (docs-only, config/prompt text, infra/service posture, no-behavior refactor, record-only): record `EVIDENCE-BEFORE:` (commands run before + measured output), `EVIDENCE-AFTER:` (same commands after), one line on what changed and why no test applies, and name the closest covering test, or `NO AUTOMATED COVERAGE POSSIBLE: <reason>`. The exception never skips verification.
+## Cost model
+Report `E% @ injected-bytes`. A dir loads its ancestor chain automatically, so hub bytes are paid once per dir; children are paid only when routed to. Judge an offload on tools-on effectiveness + bytes actually read, never on recall mode. Accept a shrink iff `dE >= -2 pts` AND `new fatal == 0` AND bytes down.
 
-## Retention proof (any edit that moves or compresses contract text)
+## Map - create these, each opening with its own `Load:` trigger
+- `context/build.md` - build/test commands, artifacts, flake handling.
+- `context/release.md` - commit/CI/push gates, receipts, failure ladder.
+- `context/domain.md` - invariants, canonical tests, files not to edit.
 
-- `cp` every file you will touch into a working dir at the START of the same task, byte-exact. The proof may only diff against that snapshot: never against a reconstruction, a memory, or a token list. A reconstruction can only prove the facts its author remembered.
-- Extract identifiers from before and after (SHAs, IPs, ports, dates, versions, filenames, commands), then `comm -23 before after`. Dropped set must be EMPTY. Content compression that changes wording needs a second screen (content-word parity, modal-verb parity for rules).
-- A ref that moves to a child must stay reachable: the parent keeps one pointer line, the child keeps a `Load:` trigger that covers the question. Absolute literal paths; brace shorthand (`context/{a,b}.md`) is banned - it is non-greppable and invisible to a resolver.
-- Offload failures are classified, never averaged: MOVED-TO-CHILD (provable by quoting the parent pointer line + the child `Load:` line) vs LOST (zero tolerance).
-
-## Cost model (what "better" means)
-
-Report `E% @ C bytes / $` per variant: effectiveness of the contract against the agent's real context cost.
-- An agent loading a directory gets its ancestor `AGENTS.md` chain automatically; `context/*.md` children are read only when a `Load:` trigger matches. So hub bytes are paid once per working directory: one byte in a root contract is N bytes of aggregate cost.
-- Judge an offload on tools-on effectiveness + measured per-read bytes. NEVER on recall-mode effectiveness: a tool-less run cannot open a child, so recall falls for every offload no matter how good the routing is.
-- Measure injected bytes from the transcript the runtime writes, not from provider token accounting (which under-reports and moves in the wrong direction here).
-- Accept a shrink iff `dE >= -2 pts` AND `new fatal == 0` AND bytes down. Ratchet: never merge a change that creates a new fatal failure, even if the aggregate score rises.
-- Probes: `recall` (non-guessable fact: port, SHA, test name, rule), `trap` (the expensive mistake, correct answer is a refusal), `route` (fact lives in a child: correct = UNKNOWN + the right path), `plan` (named commands/paths). Anchor every probe to the contract line that supplies the answer and grep-verify it; a probe whose prompt contains its own answer token tests recognition, not knowledge. Grade on fact tokens, never on citation format - a model with nothing loaded will fabricate a confident `file:line` citation.
-- Controls: a blind arm from a contractless cwd (any probe the blind arm passes is non-discriminating - rewrite or quarantine it), repeated interleaved runs with paired per-probe comparison, and the same bank run against BOTH states in one session.
-
-## Map
-
-- `context/build.md` - build/test commands, artifacts, flake handling. Load: before running anything.
-- `context/release.md` - commit/CI/push gates, receipts, failure ladder. Load: before the first push of a session.
-- `context/domain.md` - invariants, canonical tests, what not to edit. Load: before editing domain logic.
-
-This repo ships only `AGENTS.md` + `README.md`; the children above are illustrative of the shape.
-
-Pointers: upstream format this builds on = https://github.com/agentsmd/agents.md (see README.md).
+Upstream format this extends: https://github.com/agentsmd/agents.md (rationale + measured evidence in README.md).
