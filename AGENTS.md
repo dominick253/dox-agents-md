@@ -12,6 +12,7 @@ Grammar: -> leads-to/imply <- reads-from => must ~ approx + and | or ! hard rule
 - Budgets (bytes): root 17920 | hub 14336 | contract 8192 | index child 3300 | topic child 4096 target, 8192 hard.
 - Live state > snapshot: query (`git ls-remote`, fetch, running listener) before claiming absent/stale.
 - ! Never delete a load-bearing fact: move it and leave the pointer that reaches it.
+- ! Two different jobs, do not confuse them. Anchor tokens in an index line ROUTE (measured: in-repo first open 0/6 -> 5/6, off-repo reads 31 -> 5). A value reachable only through a pointer line does not ANSWER: the same token in the same file got refused when embedded in an index line (22/24) and accepted when asserted as a fact line (24/24). So put anchors in the index AND keep any fact whose wrong value is fatal (port, path, flag, unit name) asserted in the core. Missing anchors cause confident misroutes; missing core facts cause coin flips against whatever else is injected.
 
 ## Verification
 - Behavior change => failing test FIRST: paste the failing output (test name + command + failure line) before implementing, then the passing output of the same command. Same transcript, same commit.
@@ -24,8 +25,9 @@ Grammar: -> leads-to/imply <- reads-from => must ~ approx + and | or ! hard rule
 Report `E% @ injected-bytes`. A dir loads its ancestor chain automatically, so hub bytes are paid once per dir; children are paid only when routed to. Judge an offload on tools-on effectiveness + bytes actually read, never on recall mode. Accept a shrink iff `dE >= -2 pts` AND `new fatal == 0` AND bytes down.
 
 ## Map - create these, each opening with its own `Load:` trigger
-- `context/build.md` - build/test commands, artifacts, flake handling.
-- `context/release.md` - commit/CI/push gates, receipts, failure ladder.
-- `context/domain.md` - invariants, canonical tests, files not to edit.
+Each line names the ANCHORS its child holds, not just a topic:
+- `context/build.md` - build/test commands, artifacts, flake handling (anchors: `make check`, `test_<name>`, `--rerun-tasks`).
+- `context/release.md` - commit/CI/push gates, receipts, failure ladder (anchors: gate script names, receipt env vars).
+- `context/domain.md` - invariants, canonical tests, files not to edit (anchors: invariant test names, config paths).
 
 Upstream format this extends: https://github.com/agentsmd/agents.md (rationale + measured evidence in README.md).
