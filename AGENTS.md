@@ -12,7 +12,7 @@ Grammar: -> leads-to/imply <- reads-from => must ~ approx + and | or ! hard rule
 - Budgets (bytes): root 17920 | hub 14336 | contract 8192 | index child 3300 | topic child 4096 target, 8192 hard.
 - Live state > snapshot: query (`git ls-remote`, fetch, running listener) before claiming absent/stale.
 - ! Never delete a load-bearing fact: move it and leave the pointer that reaches it.
-- ! Two different jobs, do not confuse them. Anchor tokens in an index line ROUTE (measured: in-repo first open 0/6 -> 5/6, off-repo reads 31 -> 5). A value reachable only through a pointer line does not ANSWER: the same token in the same file got refused when embedded in an index line (22/24) and accepted when asserted as a fact line (24/24). So put anchors in the index AND keep any fact whose wrong value is fatal (port, path, flag, unit name) asserted in the core. Missing anchors cause confident misroutes; missing core facts cause coin flips against whatever else is injected.
+- ! Anchors in an index line ROUTE, they do not ANSWER: a value reachable only through a pointer line is refused as an answer, and a missing anchor causes a confident misroute. Any fact whose wrong value is fatal (port, path, flag, unit name) must also be asserted as a fact line in the core (measured: embedded-in-index 22/24 vs asserted-in-core 24/24).
 
 ## Verification
 - Behavior change => failing test FIRST: paste the failing output (test name + command + failure line) before implementing, then the passing output of the same command. Same transcript, same commit.
