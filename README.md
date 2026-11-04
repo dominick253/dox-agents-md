@@ -4,7 +4,7 @@ DOX is a way of laying out `AGENTS.md` files as a **tree of contracts** instead 
 
 It builds on the open [AGENTS.md](https://agents.md) format. The original format and its specification live at **[agentsmd/agents.md](https://github.com/agentsmd/agents.md)** - that is the upstream this protocol extends, and it is the source of the `AGENTS.md` convention itself. DOX adds two things on top: the distributed parent/child routing layer, and a cost model so "we cut 40% of the context" is a measurement rather than a claim.
 
-See [`AGENTS.md`](AGENTS.md) for the protocol written in its own style, including the grammar legend, budgets, verification rules and the retention proof.
+**[`AGENTS.md`](AGENTS.md) is the template: copy it, fill the `<placeholders>`, create the three children it routes to.** It is 2.9 KB on purpose - a root contract is loaded by every agent that starts anywhere in the tree, so a template that teaches the discipline by staying small is the discipline. This README is the reasoning; the contract is what you ship.
 
 ## The problem it solves
 
@@ -43,6 +43,6 @@ Retention was proven per edit, not asserted: byte-exact snapshots taken before e
 
 ## Adopting it
 
-1. Write the root contract as a routing index: identity, hard rules, budgets, and one pointer line per child. Keep the grammar legend at the top so density stays unambiguous.
+1. Copy `AGENTS.md`, rename the title to your project, keep the grammar legend at the top so dense lines stay unambiguous, and cut any line that no agent in your tree actually needs before its first tool call.
 2. Move detail into `context/<topic>.md` children, each opening with a `Load:` line that names the task shapes that need it, and let the index keep the old filename when you split something existing - every inbound reference keeps resolving.
 3. Before your next compression pass, snapshot the files, then prove emptiness of the dropped-identifier set. Never accept "I rewrote it and it reads fine".
