@@ -30,9 +30,21 @@ All numbers below come from a live 60-contract workspace, measured with the harn
 | hub/root contract split into core + opt-in children (17.9 KB -> 10.0 KB) | injected at root **-43%**, at the ecosystem hub **-42%** | tools-on **100%** held, recall flat (as designed) |
 | on-demand children split by task shape (index kept the same filename) | bytes a task reads **50-55% lower** per shape | recall bank **100%** held, 0 orphan children, all inbound refs still resolving |
 | dense vs verbose head-to-head, same facts | 3,439 B vs 10,249 B | dense **83.3%** vs verbose **66.7%** - smaller *and* more effective |
+| **neutral test, one synthetic repo, 16 identical facts**: slimmed template vs upstream single file | injected **2,890 B vs 2,474 B (+17%)** | tools-on **100% vs 95.8%**, 0 fatal vs 1; the first version of this template cost **2.25x** more bytes and that was fixed by trimming the template |
 | infra index split into 6 topic children | per-read **-50% to -65%** on seven task shapes | tools-on **66.7% -> 75.0%**, fatal misses 3 -> 2 |
 
 Retention was proven per edit, not asserted: byte-exact snapshots taken before editing, identifier diff (`comm -23`) against the union of the new core plus its children, empty every time. Where a check found a genuine loss, the fact was restored - which is the whole argument for snapshot-before-editing.
+
+## When DOX pays, and when it does not
+
+Measured, not asserted - the first neutral test we ran came back **against** us and changed this section.
+
+- **One small repo, one contract:** the plain upstream format is cheaper. A single-file `AGENTS.md` injected 2,474 B against the DOX template's 2,890 B, and effectiveness was statistically indistinguishable (tools-on 100% vs 95.8%, the one upstream miss being an early-termination hiccup). DOX has a **fixed overhead** - grammar legend, budgets, routing, verification and retention rules - that only a corpus can amortize. If your project is one flat directory, use upstream `AGENTS.md` and stop here.
+- **Where the fixed overhead returns profit:** the moment contracts are *shared*. A root contract is loaded by every directory beneath it, so hub bytes are multiplied by the number of working dirs. Measured on a live 60-contract workspace: root contract **-43% injected**, a large repo contract **-49.8%**, on-demand children **-50% to -65% per task shape**, with probe effectiveness flat or up. That is a 2.25x penalty in one repo turning into a 40-50% saving across a workspace, because the cost is paid once and the saving is paid N times.
+- **Routing quality is a separate, measurable win.** In the same neutral test the DOX arm opened exactly **one** correct child per detail question (6/6 probes) while the single-file arm opened **5 to 12 files**, including contracts from outside the repo. Same answer, different cost of finding it - and the gap widens as the corpus grows, which is exactly the regime where the byte overhead stops mattering.
+- **Recall scores will look worse and mean nothing.** A tool-less agent cannot open a child, so every offload registers as a loss (DOX arm 66.7% vs single-file 100% in that test, with zero facts actually lost). Judge an offload on tools-on effectiveness plus bytes actually read.
+
+The published template is being re-scored in that neutral harness; if the numbers move, this section moves with them rather than being quietly rewritten.
 
 ## Four measurement lessons that changed the protocol
 
